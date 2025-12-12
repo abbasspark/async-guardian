@@ -2,6 +2,13 @@
 
 All notable changes to Node Guardian will be documented in this file.
 
+# [2.1.0](https://github.com/abbasspark/async-guardian/compare/v2.0.1...v2.1.0) (2025-12-12)
+
+
+### Features
+
+* add exports field for subpath imports ([79d5887](https://github.com/abbasspark/async-guardian/commit/79d5887d5eafd45a0e0d33e5257fbf986c51ace3))
+
 ## [2.0.1](https://github.com/abbasspark/async-guardian/compare/v2.0.0...v2.0.1) (2025-12-12)
 
 
