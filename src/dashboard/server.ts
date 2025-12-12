@@ -1309,11 +1309,22 @@ export class DashboardServer {
         function renderEvent(event, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            
+
             const time = new Date(event.timestamp).toLocaleTimeString();
 
             const div = document.createElement('div');
             div.className = 'event-row';
+            div.style.cursor = 'pointer';
+
+            // Format event data for display
+            const dataDetails = event.data ? Object.entries(event.data)
+                .map(([key, value]) => {
+                    if (key === 'stack') {
+                        return \`<div style="margin-top: 8px;"><strong>\${key}:</strong><pre style="margin: 4px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; overflow-x: auto; font-size: 11px;">\${value}</pre></div>\`;
+                    }
+                    return \`<div><strong>\${key}:</strong> \${JSON.stringify(value)}</div>\`;
+                }).join('') : '';
+
             div.innerHTML = \`
                 <div class="event-main">
                     <div class="event-type">
@@ -1323,10 +1334,24 @@ export class DashboardServer {
                     <span class="event-time">\${time}</span>
                 </div>
                 <div class="event-details">
-                    \${event.file ? '<div class="event-file">' + event.file + ':' + event.line + '</div>' : ''}
-                    \${event.suggestion ? '<div style="margin-top: 4px;">' + event.suggestion.split('\\n')[0] + '</div>' : ''}
+                    <div style="font-weight: 500; margin-bottom: 8px;">\${event.message || ''}</div>
+                    \${event.file ? '<div class="event-file">📍 ' + event.file + (event.line ? ':' + event.line : '') + '</div>' : ''}
+                    \${event.data?.function ? '<div style="margin-top: 4px;"><strong>Function:</strong> ' + event.data.function + '</div>' : ''}
+                    \${event.data?.duration ? '<div><strong>Duration:</strong> ' + event.data.duration + 'ms</div>' : ''}
+                    <div class="event-data-toggle" style="margin-top: 8px; display: none;">
+                        \${dataDetails}
+                    </div>
+                    \${event.suggestion ? '<div style="margin-top: 8px; padding: 8px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; border-radius: 4px;"><strong>💡 Suggestion:</strong><br>' + event.suggestion + '</div>' : ''}
                 </div>
             \`;
+
+            // Click to toggle details
+            div.addEventListener('click', () => {
+                const toggle = div.querySelector('.event-data-toggle');
+                if (toggle) {
+                    toggle.style.display = toggle.style.display === 'none' ? 'block' : 'none';
+                }
+            });
 
             container.insertBefore(div, container.firstChild);
 
