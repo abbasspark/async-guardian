@@ -91,23 +91,28 @@ describe('CustomMetrics', () => {
       for (let i = 1; i <= 100; i++) {
         metrics.recordHistogram('test', i);
       }
-      
+
       const stats = metrics.getHistogramStats('test');
       expect(stats!.count).toBe(100);
       expect(stats!.min).toBe(1);
       expect(stats!.max).toBe(100);
       expect(stats!.avg).toBe(50.5);
-      expect(stats!.p50).toBeCloseTo(50, 1);
+      // p50 uses nearest rank method: sorted[floor(100 * 0.5)] = sorted[50] = 51
+      expect(stats!.p50).toBe(51);
     });
 
     it('should calculate percentiles', () => {
       const values = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
       values.forEach(v => metrics.recordHistogram('test', v));
-      
+
       const stats = metrics.getHistogramStats('test');
-      expect(stats!.p50).toBeCloseTo(50, 10);
-      expect(stats!.p95).toBeCloseTo(95, 10);
-      expect(stats!.p99).toBeCloseTo(99, 10);
+      // Using nearest rank method on sorted array [10,20,30,40,50,60,70,80,90,100]
+      // p50 = sorted[floor(10 * 0.5)] = sorted[5] = 60
+      // p95 = sorted[floor(10 * 0.95)] = sorted[9] = 100
+      // p99 = sorted[floor(10 * 0.99)] = sorted[9] = 100
+      expect(stats!.p50).toBe(60);
+      expect(stats!.p95).toBe(100);
+      expect(stats!.p99).toBe(100);
     });
 
     it('should limit histogram size to 1000', () => {

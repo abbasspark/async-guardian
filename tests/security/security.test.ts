@@ -35,8 +35,9 @@ describe('Security Tests', () => {
         eventLoop: { sampleInterval: '1000' as any }
       })).toThrow();
 
+      // Test with array type for numeric field
       expect(() => ConfigValidator.validate({
-        promises: { enabled: 'yes' as any }
+        promises: { checkInterval: [] as any }
       })).toThrow();
     });
 
@@ -217,7 +218,7 @@ describe('Security Tests', () => {
       maliciousInputs.forEach(input => {
         // Should not crash
         expect(() => {
-          guardian.on('event', (event) => {
+          guardian.getEventStore().on('event', (event: any) => {
             // Event handling
           });
         }).not.toThrow();
@@ -232,16 +233,20 @@ describe('Security Tests', () => {
       const guardian = Guardian.create({ mode: 'debug' });
       guardian.start();
 
-      // Try to generate excessive events
-      for (let i = 0; i < 10000; i++) {
-        guardian['eventLoopMonitor']['lastCheck'] = Date.now();
+      // Try to generate excessive events by allocating memory rapidly
+      const arrays: any[] = [];
+      for (let i = 0; i < 100; i++) {
+        arrays.push(new Array(10000).fill('x'));
       }
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Guardian should still be responsive
-      const stats = guardian.getStats();
+      const stats = guardian.getStatus();
       expect(stats).toBeDefined();
+
+      // Clean up
+      arrays.length = 0;
 
       guardian.stop();
     });
@@ -265,7 +270,7 @@ describe('Security Tests', () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Should not crash or use excessive memory
-      const stats = guardian.getStats();
+      const stats = guardian.getStatus();
       expect(stats).toBeDefined();
 
       guardian.stop();

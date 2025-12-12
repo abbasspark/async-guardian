@@ -5,7 +5,8 @@ export interface PromiseConfig {
   enabled: boolean;
   deadlockThreshold: number; // milliseconds before considering deadlock
   checkInterval: number; // how often to check for deadlocks
-  maxTrackedPromises: number;
+  maxTracked?: number; // Alias for compatibility with Guardian config
+  maxTrackedPromises?: number;
 }
 
 export interface TrackedPromise {
@@ -27,13 +28,19 @@ export class PromiseTracker {
   private deadlockCount = 0;
 
   constructor(config: Partial<PromiseConfig> = {}) {
+    // Support both maxTracked (Guardian config) and maxTrackedPromises
+    const maxTracked = config.maxTracked || config.maxTrackedPromises || 10000;
+
     this.config = {
       enabled: true,
       deadlockThreshold: 30000, // 30 seconds
       checkInterval: 5000, // check every 5 seconds
-      maxTrackedPromises: 10000,
+      maxTrackedPromises: maxTracked,
       ...config,
     };
+
+    // Ensure maxTrackedPromises is always set
+    this.config.maxTrackedPromises = this.config.maxTracked || this.config.maxTrackedPromises || 10000;
   }
 
   start(): void {
@@ -148,7 +155,7 @@ export class PromiseTracker {
     }
 
     // Limit memory usage
-    if (this.promises.size >= this.config.maxTrackedPromises) {
+    if (this.promises.size >= (this.config.maxTrackedPromises || 10000)) {
       // Remove oldest resolved/rejected
       this.cleanupOldPromises();
     }
