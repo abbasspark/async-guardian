@@ -2,6 +2,13 @@
 
 All notable changes to Node Guardian will be documented in this file.
 
+# [1.2.0](https://github.com/abbasspark/async-guardian/compare/v1.1.0...v1.2.0) (2025-12-12)
+
+
+### Features
+
+* rename package to async-guardian ([d8a24e1](https://github.com/abbasspark/async-guardian/commit/d8a24e1a858d7002c754c69e58e93a0b29151a3e))
+
 # [1.1.0](https://github.com/abbasspark/node_guardian/compare/v1.0.0...v1.1.0) (2025-12-12)
 
 
