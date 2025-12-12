@@ -2,6 +2,34 @@
 
 All notable changes to Node Guardian will be documented in this file.
 
+# [2.0.0](https://github.com/abbasspark/async-guardian/compare/v1.2.0...v2.0.0) (2025-12-12)
+
+
+* refactor!: rename package from node-guardian to async-guardian ([dddf178](https://github.com/abbasspark/async-guardian/commit/dddf178fdeba114da0cb4f146fefb880f5e0e134))
+
+
+### BREAKING CHANGES
+
+* Package renamed from node-guardian to async-guardian.
+Users must update their imports from 'node-guardian' to 'async-guardian'.
+
+Files removed:
+- test-self-tracking.js
+- test-app.js
+- optimized-dashboard.js
+- replace-script.py
+- apply-perf-fixes.sh
+- .gitmessage
+
+Files updated:
+- README.md (all package references)
+- All source files with imports and path checks
+- Example files
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+
 # [1.2.0](https://github.com/abbasspark/async-guardian/compare/v1.1.0...v1.2.0) (2025-12-12)
 
 
