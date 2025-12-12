@@ -23,17 +23,17 @@ Guardian is a runtime analysis engine that detects:
 
 ### Installation
 
-\`\`\`bash
+```bash
 npm install async-guardian
 # or
 yarn add async-guardian
-\`\`\`
+```
 
 ### Basic Usage
 
 #### CLI (Zero-Config)
 
-\`\`\`bash
+```bash
 # Start monitoring your app
 npx guardian start -- node your-app.js
 
@@ -45,22 +45,22 @@ npx guardian deadlocks
 
 # Run health check
 npx guardian doctor
-\`\`\`
+```
 
 #### Programmatic
 
-\`\`\`typescript
+```typescript
 import { Guardian } from 'async-guardian';
 
 const guardian = Guardian.getInstance();
 guardian.start();
 
 // Your app code here
-\`\`\`
+```
 
 #### NestJS Integration (🎯 Recommended)
 
-\`\`\`typescript
+```typescript
 // app.module.ts
 import { GuardianModule } from 'async-guardian/nestjs';
 
@@ -81,7 +81,7 @@ import { GuardianModule } from 'async-guardian/nestjs';
   ],
 })
 export class AppModule {}
-\`\`\`
+```
 
 Then visit: `http://localhost:4600` for real-time monitoring.
 
@@ -91,7 +91,7 @@ Then visit: `http://localhost:4600` for real-time monitoring.
 
 Automatically detects promises that are stuck waiting:
 
-\`\`\`typescript
+```typescript
 // ❌ This will be detected as a deadlock
 async function orderService() {
   await paymentService(); // Waiting...
@@ -100,44 +100,44 @@ async function orderService() {
 async function paymentService() {
   await orderService(); // Circular wait!
 }
-\`\`\`
+```
 
 **Guardian Output:**
-\`\`\`
+```
 🔴 CIRCULAR DEADLOCK DETECTED
 
 Promise pending for 32s at:
 src/order.service.ts:34
 
 This is a circular dependency in your async calls.
-\`\`\`
+```
 
 ### 2. Unawaited Promise Detection
 
 Finds promises that are created but never awaited:
 
-\`\`\`typescript
+```typescript
 // ❌ Missing await
 async function badCode() {
   someAsyncFunction(); // No await!
   return 'done';
 }
-\`\`\`
+```
 
 **Guardian Output:**
-\`\`\`
+```
 ⚠️ UNAWAITED PROMISE
 
 src/user.service.ts:45
 
 Fix: Add 'await' keyword or .catch()
-\`\`\`
+```
 
 ### 3. Memory Leak Detection
 
 Monitors heap growth and identifies leaks:
 
-\`\`\`
+```
 🔴 MEMORY LEAK DETECTED
 
 Heap growth: +127MB over 60s
@@ -147,13 +147,13 @@ Common causes:
 1. Event listeners not removed
 2. Timers not cleared
 3. Caches without size limits
-\`\`\`
+```
 
 ### 4. Event Loop Monitoring
 
 Detects blocking code:
 
-\`\`\`
+```
 ⚠️ EVENT LOOP STALL
 
 Duration: 523ms (Critical!)
@@ -162,7 +162,7 @@ Look for:
 - Synchronous I/O (fs.readFileSync)
 - Heavy CPU computations
 - Blocking database queries
-\`\`\`
+```
 
 ### 5. Real-Time Dashboard
 
@@ -176,7 +176,7 @@ Beautiful web UI with live metrics:
 
 ## 📖 CLI Commands
 
-\`\`\`bash
+```bash
 # Start monitoring
 guardian start
 
@@ -194,7 +194,7 @@ guardian deadlocks
 
 # Run full health check (runs for 10s)
 guardian doctor
-\`\`\`
+```
 
 ## 🎯 NestJS Integration
 
@@ -202,7 +202,7 @@ Guardian has first-class support for NestJS:
 
 ### Method Monitoring
 
-\`\`\`typescript
+```typescript
 import { MonitorAsync } from 'async-guardian/nestjs';
 
 @Injectable()
@@ -214,11 +214,11 @@ export class UserService {
     return await this.db.user.findOne({ id });
   }
 }
-\`\`\`
+```
 
 ### Class Monitoring
 
-\`\`\`typescript
+```typescript
 import { GuardianMonitored } from 'async-guardian/nestjs';
 
 @GuardianMonitored()
@@ -226,13 +226,13 @@ import { GuardianMonitored } from 'async-guardian/nestjs';
 export class PaymentService {
   // All async methods in this class are monitored
 }
-\`\`\`
+```
 
 ## 🔧 Configuration
 
 ### Advanced Config
 
-\`\`\`typescript
+```typescript
 import { Guardian } from 'async-guardian';
 
 const guardian = Guardian.create({
@@ -260,15 +260,15 @@ const guardian = Guardian.create({
 });
 
 guardian.start();
-\`\`\`
+```
 
 ## 🎨 Dashboard
 
 Access the dashboard:
 
-\`\`\`bash
+```bash
 guardian dashboard --port 4600 --host localhost
-\`\`\`
+```
 
 Then open: http://localhost:4600
 
@@ -281,7 +281,7 @@ Features:
 
 ## 📊 API Usage
 
-\`\`\`typescript
+```typescript
 import { Guardian, EventType } from 'async-guardian';
 
 const guardian = Guardian.getInstance();
@@ -301,13 +301,13 @@ const promises = guardian.getPendingPromises();
 
 // Force garbage collection (if --expose-gc enabled)
 guardian.forceGC();
-\`\`\`
+```
 
 ## 🚀 Production Usage
 
 ### Recommended Setup
 
-\`\`\`typescript
+```typescript
 // main.ts
 import { Guardian } from 'async-guardian';
 import { DashboardServer } from 'async-guardian/dashboard';
@@ -329,7 +329,7 @@ async function bootstrap() {
   
   await app.listen(3000);
 }
-\`\`\`
+```
 
 ### Performance Impact
 
