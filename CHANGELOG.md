@@ -2,6 +2,13 @@
 
 All notable changes to Node Guardian will be documented in this file.
 
+## [2.0.1](https://github.com/abbasspark/async-guardian/compare/v2.0.0...v2.0.1) (2025-12-12)
+
+
+### Bug Fixes
+
+* correct markdown code block formatting in README ([6be8024](https://github.com/abbasspark/async-guardian/commit/6be80240007345eb5308df03db067f7aade6fbf5))
+
 # [2.0.0](https://github.com/abbasspark/async-guardian/compare/v1.2.0...v2.0.0) (2025-12-12)
 
 
