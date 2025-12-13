@@ -2,6 +2,13 @@
 
 All notable changes to Node Guardian will be documented in this file.
 
+## [2.1.2](https://github.com/abbasspark/async-guardian/compare/v2.1.1...v2.1.2) (2025-12-13)
+
+
+### Bug Fixes
+
+* dashboard Periodic clean up ([4af4ae1](https://github.com/abbasspark/async-guardian/commit/4af4ae1226dcd9aa001c2d33f3479cc982fd95f3))
+
 ## [2.1.1](https://github.com/abbasspark/async-guardian/compare/v2.1.0...v2.1.1) (2025-12-12)
 
 
