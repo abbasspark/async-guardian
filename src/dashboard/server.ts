@@ -6,144 +6,144 @@ import { Guardian } from '../index';
 import { eventStore } from '../collector/eventStore';
 
 export interface DashboardConfig {
-  port: number;
-  host: string;
+    port: number;
+    host: string;
 }
 
 export class DashboardServer {
-  private app: express.Application;
-  private server: Server | null = null;
-  private wss: WebSocketServer | null = null;
-  private config: DashboardConfig;
-  private guardian: Guardian;
-  private clients = new Set<WebSocket>();
+    private app: express.Application;
+    private server: Server | null = null;
+    private wss: WebSocketServer | null = null;
+    private config: DashboardConfig;
+    private guardian: Guardian;
+    private clients = new Set<WebSocket>();
 
-  constructor(guardian: Guardian, config: Partial<DashboardConfig> = {}) {
-    this.guardian = guardian;
-    this.config = {
-      port: config.port || 4600,
-      host: config.host || 'localhost',
-    };
+    constructor(guardian: Guardian, config: Partial<DashboardConfig> = {}) {
+        this.guardian = guardian;
+        this.config = {
+            port: config.port || 4600,
+            host: config.host || 'localhost',
+        };
 
-    this.app = express();
-    this.setupRoutes();
-  }
-
-  start(): Promise<void> {
-    return new Promise((resolve) => {
-      this.server = this.app.listen(this.config.port, this.config.host, () => {
-        console.log(`\n🎯 Guardian Dashboard: http://${this.config.host}:${this.config.port}`);
-        resolve();
-      });
-
-      // Setup WebSocket
-      this.wss = new WebSocketServer({ server: this.server });
-      this.setupWebSocket();
-    });
-  }
-
-  stop(): void {
-    if (this.wss) {
-      this.wss.close();
-      this.wss = null;
+        this.app = express();
+        this.setupRoutes();
     }
 
-    if (this.server) {
-      this.server.close();
-      this.server = null;
+    start(): Promise<void> {
+        return new Promise((resolve) => {
+            this.server = this.app.listen(this.config.port, this.config.host, () => {
+                console.log(`\n🎯 Guardian Dashboard: http://${this.config.host}:${this.config.port}`);
+                resolve();
+            });
+
+            // Setup WebSocket
+            this.wss = new WebSocketServer({ server: this.server });
+            this.setupWebSocket();
+        });
     }
 
-    this.clients.clear();
-  }
+    stop(): void {
+        if (this.wss) {
+            this.wss.close();
+            this.wss = null;
+        }
 
-  private setupRoutes(): void {
-    // API routes
-    this.app.get('/api/status', (req, res) => {
-      res.json(this.guardian.getStatus());
-    });
+        if (this.server) {
+            this.server.close();
+            this.server = null;
+        }
 
-    this.app.get('/api/events', (req, res) => {
-      const { type, severity, since } = req.query;
-      
-      const events = this.guardian.getEvents({
-        type: type as any,
-        severity: severity as string,
-        since: since ? parseInt(since as string) : undefined,
-      });
+        this.clients.clear();
+    }
 
-      res.json(events);
-    });
+    private setupRoutes(): void {
+        // API routes
+        this.app.get('/api/status', (req, res) => {
+            res.json(this.guardian.getStatus());
+        });
 
-    this.app.get('/api/promises', (req, res) => {
-      res.json(this.guardian.getPendingPromises());
-    });
+        this.app.get('/api/events', (req, res) => {
+            const { type, severity, since } = req.query;
 
-    this.app.get('/api/memory', (req, res) => {
-      res.json(this.guardian.getMemorySnapshots());
-    });
+            const events = this.guardian.getEvents({
+                type: type as any,
+                severity: severity as string,
+                since: since ? parseInt(since as string) : undefined,
+            });
 
-    this.app.post('/api/gc', (req, res) => {
-      const success = this.guardian.forceGC();
-      res.json({ success, message: success ? 'GC triggered' : 'GC not available. Run with --expose-gc' });
-    });
+            res.json(events);
+        });
 
-    // Serve static files (dashboard UI)
-    this.app.get('/', (req, res) => {
-      res.send(this.getIndexHTML());
-    });
-  }
+        this.app.get('/api/promises', (req, res) => {
+            res.json(this.guardian.getPendingPromises());
+        });
 
-  private setupWebSocket(): void {
-    if (!this.wss) return;
+        this.app.get('/api/memory', (req, res) => {
+            res.json(this.guardian.getMemorySnapshots());
+        });
 
-    this.wss.on('connection', (ws: WebSocket) => {
-      this.clients.add(ws);
-      
-      // Send current status on connection
-      ws.send(JSON.stringify({
-        type: 'status',
-        data: this.guardian.getStatus(),
-      }));
+        this.app.post('/api/gc', (req, res) => {
+            const success = this.guardian.forceGC();
+            res.json({ success, message: success ? 'GC triggered' : 'GC not available. Run with --expose-gc' });
+        });
 
-      ws.on('close', () => {
-        this.clients.delete(ws);
-      });
+        // Serve static files (dashboard UI)
+        this.app.get('/', (req, res) => {
+            res.send(this.getIndexHTML());
+        });
+    }
 
-      ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
-        this.clients.delete(ws);
-      });
-    });
+    private setupWebSocket(): void {
+        if (!this.wss) return;
 
-    // Listen to event store and broadcast to all clients
-    eventStore.on('event', (event) => {
-      this.broadcast({
-        type: 'event',
-        data: event,
-      });
-    });
+        this.wss.on('connection', (ws: WebSocket) => {
+            this.clients.add(ws);
 
-    // Send status updates every 2 seconds
-    setInterval(() => {
-      this.broadcast({
-        type: 'status',
-        data: this.guardian.getStatus(),
-      });
-    }, 2000);
-  }
+            // Send current status on connection
+            ws.send(JSON.stringify({
+                type: 'status',
+                data: this.guardian.getStatus(),
+            }));
 
-  private broadcast(message: any): void {
-    const data = JSON.stringify(message);
-    
-    this.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    });
-  }
+            ws.on('close', () => {
+                this.clients.delete(ws);
+            });
 
-  private getIndexHTML(): string {
-    return `
+            ws.on('error', (error) => {
+                console.error('WebSocket error:', error);
+                this.clients.delete(ws);
+            });
+        });
+
+        // Listen to event store and broadcast to all clients
+        eventStore.on('event', (event) => {
+            this.broadcast({
+                type: 'event',
+                data: event,
+            });
+        });
+
+        // Send status updates every 2 seconds
+        setInterval(() => {
+            this.broadcast({
+                type: 'status',
+                data: this.guardian.getStatus(),
+            });
+        }, 2000);
+    }
+
+    private broadcast(message: any): void {
+        const data = JSON.stringify(message);
+
+        this.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(data);
+            }
+        });
+    }
+
+    private getIndexHTML(): string {
+        return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -151,13 +151,6 @@ export class DashboardServer {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guardian Pro Dashboard</title>
 
-        // Periodic cleanup
-        setInterval(() => {
-            if (allEvents.length > MAX_EVENTS) {
-                allEvents = allEvents.slice(0, MAX_EVENTS);
-            }
-            updateCounter = 0;
-        }, 30000);
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -1488,5 +1481,5 @@ export class DashboardServer {
 </body>
 </html>
     `;
-  }
+    }
 }
